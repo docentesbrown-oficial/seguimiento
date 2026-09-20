@@ -760,7 +760,7 @@
       // -----------------------------
       // GitHub Pages no ejecuta backend. Para evitar CORS y no exponer
       // credenciales técnicas, enviamos un formulario POST a Apps Script
-      // dentro de un iframe invisible. Apps Script responde con postMessage.
+      // dentro de un iframe invisible. Apps Script responde con postMessage al top-level.
       function gasRequest(action, params = {}) {
         return new Promise((resolve, reject) => {
           if (!GAS_BRIDGE_URL || !GAS_BRIDGE_URL.includes('/exec')) {
@@ -820,7 +820,7 @@
             if (settled) return;
             cleanup();
             reject(new Error('La consulta tardó demasiado. Revisá la implementación de Google Apps Script y volvé a intentar.'));
-          }, 25000);
+          }, 30000);
         });
       }
 

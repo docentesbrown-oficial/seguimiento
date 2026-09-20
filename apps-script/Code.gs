@@ -22,6 +22,8 @@ const TRACKER_CONFIG = {
   adminPasswordToInstall: 'CAMBIAR_ESTA_CONTRASENA'
 };
 
+const TRACKER_VERSION = 'github-pages-bridge-v2';
+
 const TRACKER_STATUSES = [
   'Pendiente de pago',
   'Listo para Imprimir',
@@ -90,6 +92,13 @@ function doPost(e) {
     if (!e || !e.parameter) throw new Error('Solicitud vacía.');
 
     const action = cleanText_(e.parameter.action);
+
+    if (action === 'ping') {
+      return bridgeResponse_(requestId, {
+        ok: true,
+        data: { service: 'Seguimiento Docentes Brown', version: TRACKER_VERSION }
+      });
+    }
 
     if (action === 'lookup') {
       const orderId = cleanOrderId_(e.parameter.orderId);
@@ -378,8 +387,20 @@ function bridgeResponse_(requestId, payload) {
     .replace(/\u2028/g, '\\u2028')
     .replace(/\u2029/g, '\\u2029');
 
+  // Apps Script puede envolver el HTML del web app en uno o más iframes.
+  // Por eso no alcanza con window.parent: el mensaje podría quedar atrapado
+  // en el contenedor de Google y nunca llegar a GitHub Pages.
+  // Enviamos al top-level y también a los padres como fallback.
   const html = '<!doctype html><html><head><meta charset="utf-8"></head><body>' +
-    '<script>window.parent.postMessage(' + safeJson + ', "*");<\/script>' +
+    '<script>(function(){' +
+    'var m=' + safeJson + ';' +
+    'function send(){' +
+      'try{window.top.postMessage(m,"*");}catch(e){}' +
+      'try{window.parent.postMessage(m,"*");}catch(e){}' +
+      'try{if(window.parent&&window.parent.parent){window.parent.parent.postMessage(m,"*");}}catch(e){}' +
+    '}' +
+    'send();setTimeout(send,150);setTimeout(send,700);' +
+    '})();<\/script>' +
     '</body></html>';
 
   return HtmlService
