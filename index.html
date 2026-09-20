@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#24496e" />
   <meta name="description" content="Seguimiento de pedidos de Docentes Brown" />
   <title>Seguimiento de pedidos | Docentes Brown</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -465,7 +464,7 @@
           <span class="brand-sub">Consultora Educativa · Seguimiento de pedidos</span>
         </span>
       </a>
-      <a id="modeLink" class="mode-link" href="/admin">
+      <a id="modeLink" class="mode-link" href="/?admin=1">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <span class="label">Administración</span>
       </a>
@@ -601,6 +600,10 @@
     (() => {
       'use strict';
 
+      // Backend independiente alojado en Google Apps Script.
+      // Si alguna vez cambia la URL /exec, reemplazala solamente acá.
+      const GAS_BRIDGE_URL = 'https://script.google.com/macros/s/AKfycbwxFgKbKyQabRToBTWanOXFqz2KRvkbRmTL2iuJHhKbf5MMPaU6krSXkBqMa1Cb1OurVw/exec';
+
       const STATUSES = [
         'Pendiente de pago',
         'Listo para Imprimir',
@@ -611,7 +614,7 @@
       const STATUS_LABELS = ['Pago', 'Impresión', 'Encuadernación', 'Entrega'];
       const $ = (id) => document.getElementById(id);
       const qs = new URLSearchParams(location.search);
-      const isAdmin = location.pathname.replace(/\/$/, '') === '/admin' || qs.get('admin') === '1';
+      const isAdmin = qs.get('admin') === '1';
 
       let currentPublicOrder = null;
       let adminOrders = [];
@@ -673,8 +676,14 @@
         return digits;
       }
 
+      function appBaseUrl() {
+        return `${location.origin}${location.pathname}`;
+      }
+
       function trackingUrl(orderId) {
-        return `${location.origin}/pedido?id=${encodeURIComponent(orderId)}`;
+        const url = new URL(appBaseUrl());
+        url.searchParams.set('id', orderId);
+        return url.toString();
       }
 
       function statusSentence(status) {
@@ -747,12 +756,81 @@
       }
 
       // -----------------------------
+      // Google Apps Script bridge
+      // -----------------------------
+      // GitHub Pages no ejecuta backend. Para evitar CORS y no exponer
+      // credenciales técnicas, enviamos un formulario POST a Apps Script
+      // dentro de un iframe invisible. Apps Script responde con postMessage.
+      function gasRequest(action, params = {}) {
+        return new Promise((resolve, reject) => {
+          if (!GAS_BRIDGE_URL || !GAS_BRIDGE_URL.includes('/exec')) {
+            reject(new Error('Falta configurar la URL de Google Apps Script.'));
+            return;
+          }
+
+          const requestId = (window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+          const frameName = `dbGasBridge_${requestId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+          const iframe = document.createElement('iframe');
+          iframe.name = frameName;
+          iframe.title = 'Conexión segura';
+          iframe.style.display = 'none';
+
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = GAS_BRIDGE_URL;
+          form.target = frameName;
+          form.style.display = 'none';
+
+          const fields = { action, requestId, ...params };
+          Object.entries(fields).forEach(([name, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value == null ? '' : String(value);
+            form.appendChild(input);
+          });
+
+          let settled = false;
+          const cleanup = () => {
+            window.removeEventListener('message', onMessage);
+            clearTimeout(timer);
+            form.remove();
+            iframe.remove();
+          };
+
+          const onMessage = (event) => {
+            let data = event.data;
+            if (typeof data === 'string') {
+              try { data = JSON.parse(data); } catch { return; }
+            }
+            if (!data || data.source !== 'DB_TRACKER' || data.requestId !== requestId) return;
+            settled = true;
+            cleanup();
+            const payload = data.payload || {};
+            if (!payload.ok) reject(new Error(payload.error || 'No pudimos comunicarnos con el seguimiento.'));
+            else resolve(payload.data);
+          };
+
+          window.addEventListener('message', onMessage);
+          document.body.appendChild(iframe);
+          document.body.appendChild(form);
+          form.submit();
+
+          const timer = setTimeout(() => {
+            if (settled) return;
+            cleanup();
+            reject(new Error('La consulta tardó demasiado. Revisá la implementación de Google Apps Script y volvé a intentar.'));
+          }, 25000);
+        });
+      }
+
+      // -----------------------------
       // View routing
       // -----------------------------
       function applyMode() {
         $('publicView').classList.toggle('hidden', isAdmin);
         $('adminView').classList.toggle('hidden', !isAdmin);
-        $('modeLink').href = isAdmin ? '/' : '/admin';
+        $('modeLink').href = isAdmin ? appBaseUrl() : `${appBaseUrl()}?admin=1`;
         $('modeLink').innerHTML = isAdmin
           ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="label">Volver al seguimiento</span>`
           : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="label">Administración</span>`;
@@ -825,12 +903,11 @@
         setButtonLoading($('lookupButton'), true, 'Buscando…');
 
         try {
-          const response = await fetch(`/api/order?id=${encodeURIComponent(id)}`, { cache: 'no-store' });
-          const payload = await response.json();
-          if (!response.ok || !payload.ok) throw new Error(payload.error || 'No pudimos consultar el pedido.');
+          const order = await gasRequest('lookup', { orderId: id });
+          if (!order) throw new Error('No encontramos ese pedido.');
 
-          renderPublicOrder(payload.data);
-          if (pushUrl) history.replaceState({}, '', `/pedido?id=${encodeURIComponent(id)}`);
+          renderPublicOrder(order);
+          if (pushUrl) history.replaceState({}, '', trackingUrl(id));
         } catch (error) {
           $('statusCard').classList.add('hidden');
           $('detailSection').classList.add('hidden');
@@ -852,10 +929,6 @@
       // -----------------------------
       // Admin
       // -----------------------------
-      function authHeaders(extra = {}) {
-        return { ...extra, Authorization: `Bearer ${adminPassword}` };
-      }
-
       function renderStats() {
         const total = adminOrders.length;
         const counts = Object.fromEntries(STATUSES.map(s => [s, 0]));
@@ -910,10 +983,8 @@
       async function loadOrders() {
         hideNotice($('adminMessage'));
         $('orders').innerHTML = `<div class="empty">Cargando pedidos…</div>`;
-        const response = await fetch('/api/orders', { headers: authHeaders(), cache: 'no-store' });
-        const payload = await response.json();
-        if (!response.ok || !payload.ok) throw new Error(payload.error || 'No se pudieron cargar los pedidos.');
-        adminOrders = Array.isArray(payload.data) ? payload.data : [];
+        const data = await gasRequest('list', { adminPassword });
+        adminOrders = Array.isArray(data) ? data : [];
         renderStats();
         renderOrders();
       }
@@ -976,16 +1047,13 @@
         hideNotice($('adminMessage'));
 
         try {
-          const response = await fetch('/api/status', {
-            method: 'POST',
-            headers: authHeaders({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify({ orderId, status: newStatus })
+          const data = await gasRequest('updateStatus', {
+            adminPassword,
+            orderId,
+            status: newStatus
           });
-          const payload = await response.json();
-          if (!response.ok || !payload.ok) throw new Error(payload.error || 'No se pudo actualizar el estado.');
 
-          // Compatible tanto con el puente original como con la v2.
-          const updated = payload.data?.order || payload.data || { ...current, status: newStatus };
+          const updated = data?.order || data || { ...current, status: newStatus };
           const merged = { ...current, ...updated, status: newStatus };
           const index = adminOrders.findIndex(o => o.orderId === orderId);
           if (index >= 0) adminOrders[index] = merged;
@@ -1048,7 +1116,7 @@
       $('logoutButton').addEventListener('click', () => {
         sessionStorage.removeItem('dbAdminPassword');
         adminPassword = '';
-        location.href = '/admin';
+        location.href = '/?admin=1';
       });
 
       $('closeWaButton').addEventListener('click', closeWhatsappComposer);

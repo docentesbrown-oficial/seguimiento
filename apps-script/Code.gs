@@ -1,21 +1,25 @@
 /**
- * DOCENTES BROWN — PUENTE DE SEGUIMIENTO DE PEDIDOS
+ * DOCENTES BROWN · Seguimiento de pedidos
+ * Backend independiente para una interfaz alojada en GitHub Pages.
  *
- * Proyecto independiente de la tienda.
- * - Lee pedidos existentes de la pestaña "Pedidos".
- * - Devuelve el celular SOLO a la API administrativa.
- * - Actualiza manualmente "Estado del pedido".
- * - NO envía WhatsApp ni crea triggers de WhatsApp.
- *
- * La propiedad TRACKER_SECRET debe existir en:
- * Configuración del proyecto -> Propiedades del script.
+ * IMPORTANTE:
+ * - No depende de la tienda.
+ * - No envía WhatsApp automáticamente.
+ * - GitHub Pages muestra la interfaz; este Apps Script lee/escribe la hoja Pedidos.
+ * - La contraseña de administración queda guardada en Script Properties, no en GitHub.
  */
 
 const TRACKER_CONFIG = {
   spreadsheetId: '1WG93fHGhMZjHPCDXWtWmXxX360CxfmdpKvwutIxRiM8',
   sheetName: 'Pedidos',
   statusHeader: 'Estado del pedido',
-  secretProperty: 'TRACKER_SECRET'
+  adminPasswordProperty: 'DB_TRACKER_ADMIN_PASSWORD',
+
+  // SOLO PARA LA INSTALACIÓN INICIAL:
+  // 1) reemplazá el texto de abajo por una contraseña fuerte;
+  // 2) ejecutá configurarSeguimientoGitHub();
+  // 3) después podés volver a dejar este valor como CAMBIAR_ESTA_CONTRASENA.
+  adminPasswordToInstall: 'CAMBIAR_ESTA_CONTRASENA'
 };
 
 const TRACKER_STATUSES = [
@@ -25,11 +29,23 @@ const TRACKER_STATUSES = [
   'Listo para Entregar'
 ];
 
-function configurarSeguimiento() {
-  const secret = PropertiesService.getScriptProperties().getProperty(TRACKER_CONFIG.secretProperty);
-  if (!secret) {
-    throw new Error('Falta la propiedad TRACKER_SECRET en las Propiedades del script.');
+/**
+ * Ejecutar UNA VEZ desde el editor de Apps Script.
+ * Crea/normaliza la columna Estado del pedido, agrega el desplegable
+ * y guarda la contraseña de administración en Script Properties.
+ */
+function configurarSeguimientoGitHub() {
+  if (
+    !TRACKER_CONFIG.adminPasswordToInstall ||
+    TRACKER_CONFIG.adminPasswordToInstall === 'CAMBIAR_ESTA_CONTRASENA'
+  ) {
+    throw new Error('Antes de ejecutar, cambiá adminPasswordToInstall por una contraseña fuerte.');
   }
+
+  PropertiesService.getScriptProperties().setProperty(
+    TRACKER_CONFIG.adminPasswordProperty,
+    TRACKER_CONFIG.adminPasswordToInstall
+  );
 
   const sheet = getTrackerSheet_();
   const statusColumn = ensureStatusColumn_(sheet);
@@ -38,7 +54,7 @@ function configurarSeguimiento() {
   if (lastRow >= 2) {
     const range = sheet.getRange(2, statusColumn, lastRow - 1, 1);
     const values = range.getValues().map(function(row) {
-      const current = cleanTrackerText_(row[0]);
+      const current = cleanText_(row[0]);
       return [TRACKER_STATUSES.indexOf(current) >= 0 ? current : TRACKER_STATUSES[0]];
     });
     range.setValues(values);
@@ -46,42 +62,71 @@ function configurarSeguimiento() {
 
   applyStatusValidation_(sheet, statusColumn);
   SpreadsheetApp.flush();
-  return 'Seguimiento configurado correctamente.';
+  return 'Seguimiento GitHub configurado correctamente.';
 }
 
+/**
+ * Visitar la URL /exec en el navegador sirve como prueba rápida del puente.
+ */
+function doGet() {
+  return HtmlService
+    .createHtmlOutput(
+      '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<title>Docentes Brown · Seguimiento</title></head><body style="font-family:system-ui;padding:32px;color:#24496e">' +
+      '<h2>Seguimiento Docentes Brown</h2><p>Puente activo ✓</p><p>Esta URL funciona como backend de la app publicada en GitHub Pages.</p>' +
+      '</body></html>'
+    )
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * GitHub Pages envía formularios POST a este endpoint dentro de un iframe oculto.
+ * La respuesta vuelve al navegador mediante window.parent.postMessage().
+ */
 function doPost(e) {
+  const requestId = cleanText_(e && e.parameter ? e.parameter.requestId : '');
+
   try {
-    const payload = parseTrackerPayload_(e);
-    validateTrackerSecret_(payload.secret);
+    if (!e || !e.parameter) throw new Error('Solicitud vacía.');
 
-    if (payload.action === 'lookup') {
-      const order = findOrderById_(cleanOrderId_(payload.orderId));
-      return trackerJson_({ ok: true, data: order });
+    const action = cleanText_(e.parameter.action);
+
+    if (action === 'lookup') {
+      const orderId = cleanOrderId_(e.parameter.orderId);
+      const order = findOrderById_(orderId);
+      return bridgeResponse_(requestId, {
+        ok: true,
+        data: order ? publicOrder_(order) : null
+      });
     }
 
-    if (payload.action === 'list') {
-      return trackerJson_({ ok: true, data: listOrders_() });
+    if (action === 'list') {
+      validateAdminPassword_(e.parameter.adminPassword);
+      return bridgeResponse_(requestId, {
+        ok: true,
+        data: listOrders_()
+      });
     }
 
-    if (payload.action === 'updateStatus') {
+    if (action === 'updateStatus') {
+      validateAdminPassword_(e.parameter.adminPassword);
       const order = updateOrderStatus_(
-        cleanOrderId_(payload.orderId),
-        cleanTrackerText_(payload.status)
+        cleanOrderId_(e.parameter.orderId),
+        cleanText_(e.parameter.status)
       );
-      return trackerJson_({ ok: true, data: order });
+      return bridgeResponse_(requestId, {
+        ok: true,
+        data: order
+      });
     }
 
     throw new Error('Acción no reconocida.');
   } catch (error) {
-    return trackerJson_({
+    return bridgeResponse_(requestId, {
       ok: false,
       error: String(error && error.message ? error.message : error)
     });
   }
-}
-
-function doGet() {
-  return trackerJson_({ ok: true, service: 'Seguimiento de pedidos Docentes Brown' });
 }
 
 function listOrders_() {
@@ -90,10 +135,11 @@ function listOrders_() {
   const lastColumn = sheet.getLastColumn();
   if (lastRow < 2) return [];
 
-  // Máximo: últimos 1000 pedidos, del más nuevo al más viejo.
-  const firstRow = Math.max(2, lastRow - 999);
   const headers = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
-  const rows = sheet.getRange(firstRow, 1, lastRow - firstRow + 1, lastColumn).getValues();
+  const firstRow = Math.max(2, lastRow - 999);
+  const rows = sheet
+    .getRange(firstRow, 1, lastRow - firstRow + 1, lastColumn)
+    .getValues();
 
   return rows
     .map(function(row, index) {
@@ -121,6 +167,7 @@ function findOrderById_(orderId) {
     .findNext();
 
   if (!match) return null;
+
   const rowNumber = match.getRow();
   const row = sheet.getRange(rowNumber, 1, 1, lastColumn).getValues()[0];
   return rowToOrder_(headers, row, rowNumber);
@@ -141,6 +188,7 @@ function updateOrderStatus_(orderId, status) {
     const headers = sheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
     const idColumn = headerIndex_(headers, 'ID de pedido') + 1;
     const lastRow = sheet.getLastRow();
+
     if (lastRow < 2) throw new Error('No hay pedidos cargados.');
 
     const match = sheet
@@ -156,8 +204,14 @@ function updateOrderStatus_(orderId, status) {
     sheet.getRange(rowNumber, statusColumn).setValue(status);
     SpreadsheetApp.flush();
 
-    const updatedHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
-    const row = sheet.getRange(rowNumber, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const updatedLastColumn = sheet.getLastColumn();
+    const updatedHeaders = sheet
+      .getRange(1, 1, 1, updatedLastColumn)
+      .getDisplayValues()[0];
+    const row = sheet
+      .getRange(rowNumber, 1, 1, updatedLastColumn)
+      .getValues()[0];
+
     return rowToOrder_(updatedHeaders, row, rowNumber);
   } finally {
     lock.releaseLock();
@@ -169,16 +223,20 @@ function rowToOrder_(headers, row, rowNumber) {
     const index = headers.indexOf(header);
     return index >= 0 ? row[index] : '';
   };
+
   const text = function(header) {
-    return cleanTrackerText_(value(header));
+    return cleanText_(value(header));
   };
+
   const amount = function(header) {
     const number = Number(value(header));
     return isFinite(number) ? number : 0;
   };
 
   const placed = value('Fecha y hora');
-  const placedAt = placed instanceof Date ? placed.toISOString() : cleanTrackerText_(placed);
+  const placedAt = placed instanceof Date
+    ? placed.toISOString()
+    : cleanText_(placed);
 
   const shirt = text('¿Agregó remera?').toLowerCase() === 'sí'
     ? [text('Modelo de remera'), text('Talle y color')].filter(Boolean).join(' · ')
@@ -211,6 +269,43 @@ function rowToOrder_(headers, row, rowNumber) {
     paidNow: amount('Pago ahora'),
     balance: amount('Saldo al entregar')
   };
+}
+
+/**
+ * La consulta pública NO devuelve celular ni número de fila.
+ */
+function publicOrder_(order) {
+  return {
+    orderId: order.orderId,
+    status: order.status,
+    placedAt: order.placedAt,
+    customerName: order.customerName,
+    deliveryMethod: order.deliveryMethod,
+    quantity: order.quantity,
+    courseOption: order.courseOption,
+    cover: order.cover,
+    addons: order.addons,
+    shirt: order.shirt,
+    stationery: order.stationery,
+    paymentMethod: order.paymentMethod,
+    finalTotal: order.finalTotal,
+    paidNow: order.paidNow,
+    balance: order.balance
+  };
+}
+
+function validateAdminPassword_(candidate) {
+  const expected = PropertiesService
+    .getScriptProperties()
+    .getProperty(TRACKER_CONFIG.adminPasswordProperty);
+
+  if (!expected) {
+    throw new Error('La contraseña de administración todavía no fue configurada en Apps Script.');
+  }
+
+  if (cleanText_(candidate) !== expected) {
+    throw new Error('Contraseña incorrecta.');
+  }
 }
 
 function ensureStatusColumn_(sheet) {
@@ -253,37 +348,41 @@ function headerIndex_(headers, header) {
   return index;
 }
 
-function parseTrackerPayload_(e) {
-  if (!e || !e.postData || !e.postData.contents) {
-    throw new Error('Solicitud vacía.');
-  }
-  return JSON.parse(e.postData.contents);
-}
-
-function validateTrackerSecret_(candidate) {
-  const expected = PropertiesService
-    .getScriptProperties()
-    .getProperty(TRACKER_CONFIG.secretProperty);
-
-  if (!expected || cleanTrackerText_(candidate) !== expected) {
-    throw new Error('Acceso no autorizado.');
-  }
-}
-
 function cleanOrderId_(value) {
-  const orderId = cleanTrackerText_(value).toUpperCase();
+  const orderId = cleanText_(value).toUpperCase();
   if (!/^DB-\d{14}-[A-Z0-9]{5}$/.test(orderId)) {
     throw new Error('ID de pedido inválido.');
   }
   return orderId;
 }
 
-function cleanTrackerText_(value) {
+function cleanText_(value) {
   return value === null || value === undefined ? '' : String(value).trim();
 }
 
-function trackerJson_(payload) {
-  return ContentService
-    .createTextOutput(JSON.stringify(payload))
-    .setMimeType(ContentService.MimeType.JSON);
+/**
+ * Respuesta CORS-free para GitHub Pages.
+ * El iframe recibe HTML, ejecuta el script y devuelve el resultado al padre.
+ */
+function bridgeResponse_(requestId, payload) {
+  const message = {
+    source: 'DB_TRACKER',
+    requestId: requestId,
+    payload: payload
+  };
+
+  const safeJson = JSON.stringify(message)
+    .replace(/&/g, '\\u0026')
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+
+  const html = '<!doctype html><html><head><meta charset="utf-8"></head><body>' +
+    '<script>window.parent.postMessage(' + safeJson + ', "*");<\/script>' +
+    '</body></html>';
+
+  return HtmlService
+    .createHtmlOutput(html)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
