@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#24496e" />
+  <meta name="description" content="Seguimiento de pedidos de Docentes Brown" />
+  <title>Seguimiento de pedidos | Docentes Brown</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=League+Spartan:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --blue: #24496e;
+      --blue-2: #17344f;
+      --blue-soft: #eaf0f6;
+      --cream: #f3efdc;
+      --cream-2: #fbf9ef;
+      --coral: #da6863;
+      --coral-soft: #fae8e6;
+      --ink: #162536;
+      --muted: #6a7785;
+      --white: #ffffff;
+      --green: #1f8f65;
+      --green-soft: #e7f5ef;
+      --yellow-soft: #fff5d8;
+      --line: rgba(36, 73, 110, .13);
+      --line-strong: rgba(36, 73, 110, .22);
+      --shadow-sm: 0 8px 22px rgba(25, 50, 75, .08);
+      --shadow: 0 24px 65px rgba(25, 50, 75, .13);
+      --radius: 28px;
+      --radius-md: 20px;
+      --radius-sm: 14px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "IBM Plex Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 92% 7%, rgba(218,104,99,.12), transparent 26rem),
+        radial-gradient(circle at 8% 18%, rgba(36,73,110,.09), transparent 32rem),
+        linear-gradient(180deg, #fffdf7 0%, var(--cream-2) 46%, #f4f0df 100%);
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { border: 0; }
+    a { color: inherit; }
+    .hidden { display: none !important; }
+
+    .app-shell {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0 calc(54px + var(--safe-bottom));
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      flex: 0 0 46px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      color: var(--cream);
+      background: linear-gradient(145deg, var(--blue), var(--blue-2));
+      box-shadow: 0 12px 26px rgba(36,73,110,.2);
+      font-family: "League Spartan", sans-serif;
+      font-weight: 800;
+      letter-spacing: -.04em;
+    }
+
+    .brand-text { min-width: 0; }
+    .brand-name {
+      font-family: "League Spartan", sans-serif;
+      color: var(--blue);
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.025em;
+    }
+    .brand-sub {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mode-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.66);
+      color: var(--blue);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      backdrop-filter: blur(12px);
+    }
+
+    .card {
+      border: 1px solid rgba(36,73,110,.12);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.82);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      color: #9b4541;
+      background: var(--coral-soft);
+      border: 1px solid rgba(218,104,99,.16);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+    }
+
+    h1, h2, h3 {
+      font-family: "League Spartan", sans-serif;
+      letter-spacing: -.035em;
+      color: var(--blue);
+    }
+
+    h1 {
+      margin: 17px 0 12px;
+      font-size: clamp(42px, 7vw, 72px);
+      line-height: .92;
+    }
+
+    .lead {
+      max-width: 650px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.62;
+    }
+
+    .btn {
+      min-height: 48px;
+      border-radius: 15px;
+      padding: 0 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      cursor: pointer;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease, background .16s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: .58; cursor: wait; transform: none; }
+    .btn-primary { color: #fff; background: var(--blue); box-shadow: 0 10px 24px rgba(36,73,110,.16); }
+    .btn-coral { color: #fff; background: var(--coral); box-shadow: 0 10px 24px rgba(218,104,99,.17); }
+    .btn-green { color: #fff; background: var(--green); box-shadow: 0 10px 24px rgba(31,143,101,.17); }
+    .btn-soft { color: var(--blue); background: #fff; border: 1px solid var(--line-strong); }
+    .btn-ghost { color: var(--blue); background: var(--blue-soft); }
+    .btn-sm { min-height: 40px; border-radius: 12px; padding: 0 13px; font-size: 13px; }
+
+    .field {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid var(--line-strong);
+      border-radius: 15px;
+      outline: none;
+      color: var(--ink);
+      background: rgba(255,255,255,.96);
+      padding: 0 15px;
+      transition: border-color .16s ease, box-shadow .16s ease;
+    }
+    textarea.field { min-height: 164px; padding: 14px 15px; resize: vertical; line-height: 1.5; }
+    .field:focus { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(36,73,110,.08); }
+
+    .notice {
+      margin-top: 14px;
+      border-radius: 15px;
+      padding: 13px 15px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 14px;
+      font-weight: 650;
+      border: 1px solid rgba(36,73,110,.08);
+    }
+    .notice.error { background: var(--coral-soft); color: #8f3f3b; border-color: rgba(218,104,99,.12); }
+    .notice.success { background: var(--green-soft); color: #176e4f; border-color: rgba(31,143,101,.13); }
+
+    /* PUBLIC */
+    .public-grid {
+      display: grid;
+      grid-template-columns: 1.16fr .84fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .hero-card { padding: clamp(26px, 5vw, 46px); overflow: hidden; position: relative; }
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      right: -82px;
+      bottom: -125px;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, rgba(218,104,99,.12), rgba(36,73,110,.02));
+      pointer-events: none;
+    }
+
+    .lookup-row { display: flex; gap: 10px; margin-top: 26px; position: relative; z-index: 1; }
+    .lookup-row .field { flex: 1; text-transform: uppercase; font-weight: 650; letter-spacing: .01em; }
+
+    .status-card {
+      padding: 30px;
+      color: #fff;
+      background:
+        radial-gradient(circle at 90% 10%, rgba(255,255,255,.11), transparent 15rem),
+        linear-gradient(145deg, var(--blue), #1a3a57);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      min-height: 310px;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .status-card h2 { color: #fff; margin: 12px 0 8px; font-size: 37px; line-height: 1; }
+    .status-eyebrow { text-transform: uppercase; font-size: 11px; letter-spacing: .12em; font-weight: 800; opacity: .7; }
+    .order-id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; opacity: .78; font-size: 12px; word-break: break-all; }
+
+    .progress-track { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 24px; }
+    .progress-segment { height: 8px; border-radius: 999px; background: rgba(255,255,255,.18); }
+    .progress-segment.on { background: var(--cream); }
+
+    .progress-labels {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 10px;
+      font-weight: 650;
+      line-height: 1.15;
+      color: rgba(255,255,255,.65);
+    }
+    .progress-labels span.on { color: #fff; }
+
+    .detail-card { margin-top: 22px; padding: 28px; }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 18px; }
+    .section-head h2 { margin: 0; font-size: 28px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+
+    .details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .detail-item {
+      min-height: 92px;
+      border-radius: 17px;
+      border: 1px solid var(--line);
+      padding: 15px;
+      background: rgba(255,255,255,.66);
+    }
+    .detail-label { color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .075em; }
+    .detail-value { margin-top: 7px; font-weight: 700; line-height: 1.35; word-break: break-word; }
+
+    .money-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+    .money-card { border-radius: 17px; padding: 16px; background: #f7f8fa; border: 1px solid var(--line); }
+    .money-card.total { color: #fff; background: var(--blue); border-color: var(--blue); }
+    .money-label { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; opacity: .7; font-weight: 800; }
+    .money-value { margin-top: 4px; font-family: "League Spartan", sans-serif; font-size: 27px; font-weight: 800; }
+
+    /* ADMIN */
+    .admin-login { width: min(520px, 100%); margin: 7vh auto 0; padding: 32px; }
+    .admin-login h1 { font-size: 48px; }
+    .login-form { display: grid; gap: 10px; margin-top: 22px; }
+
+    .admin-grid { display: grid; grid-template-columns: 280px 1fr; gap: 20px; align-items: start; }
+    .admin-side { padding: 22px; position: sticky; top: 16px; }
+    .admin-side h2 { font-size: 30px; margin: 14px 0 4px; }
+
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 18px 0; }
+    .stat { background: rgba(255,255,255,.86); border: 1px solid var(--line); border-radius: 15px; padding: 12px; }
+    .stat-number { font-family: "League Spartan", sans-serif; color: var(--blue); font-weight: 800; font-size: 26px; line-height: 1; }
+    .stat-label { color: var(--muted); font-size: 10px; font-weight: 700; line-height: 1.15; margin-top: 5px; }
+
+    .admin-main { padding: 22px; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .toolbar-left h2 { font-size: 32px; margin: 0; }
+    .search-wrap { width: min(390px, 100%); position: relative; }
+    .search-wrap .field { padding-left: 42px; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+
+    .orders { display: grid; gap: 11px; }
+    .order-card {
+      display: grid;
+      grid-template-columns: minmax(190px, 1.2fr) minmax(180px, .95fr) minmax(170px, .85fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 15px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.72);
+      border-radius: 18px;
+      transition: border-color .16s ease, transform .16s ease, background .16s ease;
+    }
+    .order-card:hover { border-color: rgba(36,73,110,.23); background: #fff; transform: translateY(-1px); }
+    .order-customer { min-width: 0; }
+    .customer-name { font-weight: 800; color: var(--blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .customer-meta { margin-top: 3px; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .order-code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); margin-top: 5px; }
+    .order-card select { width: 100%; min-height: 44px; border: 1px solid var(--line-strong); border-radius: 13px; background: #fff; padding: 0 10px; color: var(--ink); }
+    .order-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+    .status-pill {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .8; }
+
+    .empty { padding: 34px; text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: 18px; }
+
+    /* WHATSAPP COMPOSER */
+    .wa-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(16,34,50,.42);
+      backdrop-filter: blur(5px);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+    .wa-sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+    .wa-sheet {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      width: min(760px, calc(100% - 18px));
+      transform: translate(-50%, calc(100% + 30px));
+      z-index: 51;
+      border-radius: 28px 28px 0 0;
+      background: #fff;
+      box-shadow: 0 -26px 80px rgba(19,40,59,.24);
+      padding: 12px 20px calc(20px + var(--safe-bottom));
+      transition: transform .26s cubic-bezier(.2,.8,.2,1);
+    }
+    .wa-sheet.open { transform: translate(-50%, 0); }
+    .sheet-handle { width: 44px; height: 5px; border-radius: 999px; background: #dce2e7; margin: 2px auto 16px; }
+    .wa-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .wa-head h3 { margin: 0; font-size: 30px; }
+    .wa-recipient { margin-top: 5px; color: var(--muted); font-size: 13px; }
+    .wa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0 10px; }
+    .wa-actions { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 10px; margin-top: 12px; }
+
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 2px; color: var(--muted); font-size: 13px; }
+    .toggle { position: relative; width: 46px; height: 26px; flex: 0 0 46px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: #d9dee3; border-radius: 999px; cursor: pointer; transition: .2s ease; }
+    .toggle-slider::after { content: ""; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px; background: white; border-radius: 50%; box-shadow: 0 2px 7px rgba(0,0,0,.16); transition: .2s ease; }
+    .toggle input:checked + .toggle-slider { background: var(--green); }
+    .toggle input:checked + .toggle-slider::after { transform: translateX(20px); }
+
+    .footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 26px;
+    }
+
+    .spin {
+      width: 17px;
+      height: 17px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 950px) {
+      .public-grid { grid-template-columns: 1fr; }
+      .status-card { min-height: 260px; }
+      .admin-grid { grid-template-columns: 1fr; }
+      .admin-side { position: static; }
+      .order-card { grid-template-columns: 1.2fr .9fr; }
+      .order-actions { justify-content: stretch; }
+      .order-actions .btn { flex: 1; }
+    }
+
+    @media (max-width: 680px) {
+      .app-shell { width: min(100% - 18px, 1180px); padding-top: 12px; }
+      .topbar { margin-bottom: 16px; }
+      .brand-sub { display: none; }
+      .mode-link { padding: 9px 11px; }
+      .hero-card { padding: 24px 18px; }
+      .lookup-row { display: grid; }
+      .lookup-row .btn { width: 100%; }
+      .status-card { padding: 22px 18px; }
+      .progress-labels { display: none; }
+      .detail-card { padding: 20px 16px; }
+      .details-grid { grid-template-columns: 1fr 1fr; }
+      .money-grid { grid-template-columns: 1fr; }
+      .toolbar { display: grid; }
+      .search-wrap { width: 100%; }
+      .order-card { grid-template-columns: 1fr; }
+      .order-actions { width: 100%; }
+      .order-actions .btn { flex: 1; }
+      .admin-main, .admin-side, .admin-login { padding: 18px; }
+      .wa-sheet { width: 100%; padding-inline: 14px; }
+      .wa-grid, .wa-actions { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 430px) {
+      .details-grid { grid-template-columns: 1fr; }
+      .brand-name { font-size: 18px; }
+      .mode-link span.label { display: none; }
+      h1 { font-size: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Docentes Brown">
+        <span class="brand-mark">DB</span>
+        <span class="brand-text">
+          <span class="brand-name">Docentes Brown</span>
+          <span class="brand-sub">Consultora Educativa · Seguimiento de pedidos</span>
+        </span>
+      </a>
+      <a id="modeLink" class="mode-link" href="/?admin=1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="label">Administración</span>
+      </a>
+    </header>
+
+    <!-- PUBLIC TRACKING -->
+    <section id="publicView">
+      <div class="public-grid">
+        <section class="card hero-card">
+          <span class="kicker">Tu pedido, sin vueltas</span>
+          <h1>¿En qué anda<br>tu pedido?</h1>
+          <p class="lead">Ingresá el ID de compra y mirá el estado actualizado, el detalle del pedido y los importes registrados.</p>
+
+          <form id="lookupForm" class="lookup-row" autocomplete="off">
+            <input id="orderId" class="field" inputmode="text" spellcheck="false" placeholder="DB-20260730165004-05C5F" aria-label="ID del pedido" />
+            <button id="lookupButton" class="btn btn-primary" type="submit">Ver seguimiento</button>
+          </form>
+          <div id="publicMessage" class="notice hidden" role="status"></div>
+        </section>
+
+        <section id="statusCard" class="card status-card hidden" aria-live="polite">
+          <div>
+            <div class="status-eyebrow">Estado actual</div>
+            <h2 id="statusTitle">—</h2>
+            <div id="statusId" class="order-id"></div>
+          </div>
+          <div>
+            <div id="progressTrack" class="progress-track" aria-label="Progreso del pedido"></div>
+            <div id="progressLabels" class="progress-labels"></div>
+          </div>
+        </section>
+      </div>
+
+      <section id="detailSection" class="card detail-card hidden">
+        <div class="section-head">
+          <div>
+            <h2>Detalle del pedido</h2>
+            <div class="muted small">La información se actualiza cada vez que Docentes Brown modifica el estado.</div>
+          </div>
+          <button id="copyIdButton" class="btn btn-soft btn-sm" type="button">Copiar ID</button>
+        </div>
+        <div id="detailsGrid" class="details-grid"></div>
+        <div id="moneyGrid" class="money-grid"></div>
+      </section>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="adminView" class="hidden">
+      <section id="loginCard" class="card admin-login">
+        <span class="kicker">Acceso interno</span>
+        <h1>Gestión de<br>pedidos</h1>
+        <p class="lead">Actualizá estados y prepará el mensaje de WhatsApp. Nada se envía solo: vos revisás el texto y apretás enviar.</p>
+        <form id="loginForm" class="login-form">
+          <input id="password" class="field" type="password" autocomplete="current-password" placeholder="Clave de administración" />
+          <button class="btn btn-primary" type="submit">Entrar al panel</button>
+        </form>
+        <div id="loginMessage" class="notice error hidden"></div>
+      </section>
+
+      <section id="adminApp" class="hidden">
+        <div class="admin-grid">
+          <aside class="card admin-side">
+            <span class="kicker">Panel interno</span>
+            <h2>Pedidos</h2>
+            <p class="muted small" style="line-height:1.5;margin-top:4px">Cambiás el estado, guardás y se prepara el WhatsApp con el celular de la columna <b>Celular</b>. El mensaje queda en tus manos.</p>
+            <div id="stats" class="stats"></div>
+
+            <div class="toggle-row">
+              <span>Abrir WhatsApp al guardar</span>
+              <label class="toggle" title="Abrir WhatsApp automáticamente luego de actualizar el estado">
+                <input id="autoWhatsapp" type="checkbox" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <button id="logoutButton" class="btn btn-soft" style="width:100%;margin-top:14px" type="button">Cerrar sesión</button>
+          </aside>
+
+          <section class="card admin-main">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <h2>Gestión de estados</h2>
+                <div class="muted small">App independiente de la tienda · envío manual por WhatsApp</div>
+              </div>
+              <div class="search-wrap">
+                <span class="search-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </span>
+                <input id="searchInput" class="field" placeholder="Buscar nombre, celular o ID" />
+              </div>
+            </div>
+
+            <div id="adminMessage" class="notice hidden"></div>
+            <div id="orders" class="orders"></div>
+          </section>
+        </div>
+      </section>
+    </section>
+
+    <footer class="footer">Docentes Brown · Seguimiento de pedidos</footer>
+  </main>
+
+  <!-- WHATSAPP COMPOSER -->
+  <div id="waBackdrop" class="wa-sheet-backdrop" aria-hidden="true"></div>
+  <section id="waSheet" class="wa-sheet" role="dialog" aria-modal="true" aria-labelledby="waTitle">
+    <div class="sheet-handle"></div>
+    <div class="wa-head">
+      <div>
+        <h3 id="waTitle">Mensaje listo</h3>
+        <div id="waRecipient" class="wa-recipient"></div>
+      </div>
+      <button id="closeWaButton" class="btn btn-soft btn-sm" type="button" aria-label="Cerrar">Cerrar</button>
+    </div>
+
+    <div class="wa-grid">
+      <input id="waPhone" class="field" aria-label="Celular" />
+      <input id="waTrackingUrl" class="field" aria-label="Enlace de seguimiento" readonly />
+    </div>
+
+    <textarea id="waMessage" class="field" aria-label="Mensaje de WhatsApp"></textarea>
+
+    <div class="wa-actions">
+      <button id="copyMessageButton" class="btn btn-soft" type="button">Copiar mensaje</button>
+      <button id="copyLinkButton" class="btn btn-ghost" type="button">Copiar enlace</button>
+      <button id="openWhatsappButton" class="btn btn-green" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20.5 11.7a8.5 8.5 0 0 1-12.6 7.45L3 20.5l1.35-4.76A8.5 8.5 0 1 1 20.5 11.7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.2 7.9c.3-.65.62-.66.92-.67h.3c.11 0 .28.04.43.36.15.33.52 1.28.57 1.37.05.1.08.22.02.35-.06.13-.1.21-.2.32-.1.11-.21.24-.3.32-.1.1-.2.2-.09.4.1.2.47.78 1.01 1.26.69.62 1.27.81 1.47.9.2.1.32.08.44-.05.12-.13.5-.58.63-.78.13-.2.26-.16.44-.1.18.07 1.15.54 1.35.64.2.1.33.15.38.23.05.08.05.48-.11.95-.16.47-.94.9-1.3.96-.34.06-.78.09-1.26-.07-.29-.1-.67-.22-1.15-.43-.2-.09-3.52-1.3-4.79-4.47-.19-.47-.02-1.02.24-1.44Z" fill="currentColor"/></svg>
+        Abrir WhatsApp Business
+      </button>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const STATUSES = [
+        'Pendiente de pago',
+        'Listo para Imprimir',
+        'Listo para Encuadernar',
+        'Listo para Entregar'
+      ];
+
+      const STATUS_LABELS = ['Pago', 'Impresión', 'Encuadernación', 'Entrega'];
+      const $ = (id) => document.getElementById(id);
+      const qs = new URLSearchParams(location.search);
+      const isAdmin = qs.get('admin') === '1';
+
+      let currentPublicOrder = null;
+      let adminOrders = [];
+      let adminPassword = sessionStorage.getItem('dbAdminPassword') || '';
+      let whatsappContext = null;
+
+      // -----------------------------
+      // Helpers
+      // -----------------------------
+      const escapeHtml = (value) => String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+
+      const money = (value) => {
+        const n = Number(value || 0);
+        return new Intl.NumberFormat('es-AR', {
+          style: 'currency',
+          currency: 'ARS',
+          maximumFractionDigits: 0
+        }).format(Number.isFinite(n) ? n : 0);
+      };
+
+      const dateTime = (value) => {
+        if (!value) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return new Intl.DateTimeFormat('es-AR', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        }).format(date);
+      };
+
+      const firstName = (name) => String(name || '').trim().split(/\s+/)[0] || '¡Hola!';
+
+      function normalizeOrderId(value) {
+        return String(value || '').trim().toUpperCase();
+      }
+
+      function isValidOrderId(value) {
+        return /^DB-\d{14}-[A-Z0-9]{5}$/.test(normalizeOrderId(value));
+      }
+
+      function normalizeWhatsAppPhone(value) {
+        let digits = String(value || '').replace(/\D/g, '');
+        if (!digits) return '';
+        if (digits.startsWith('00')) digits = digits.slice(2);
+        if (digits.startsWith('549')) return digits;
+        if (digits.startsWith('54')) {
+          let national = digits.slice(2);
+          if (national.startsWith('0')) national = national.slice(1);
+          if (national.startsWith('9')) return '54' + national;
+          return '549' + national;
+        }
+        if (digits.startsWith('0')) digits = digits.slice(1);
+        if (digits.length === 10) return '549' + digits;
+        return digits;
+      }
+
+      function trackingUrl(orderId) {
+        return `${location.origin}/?id=${encodeURIComponent(orderId)}`;
+      }
+
+      function statusSentence(status) {
+        switch (status) {
+          case 'Pendiente de pago':
+            return 'Tu pedido está registrado y figura pendiente de pago.';
+          case 'Listo para Imprimir':
+            return 'Tu pedido ya está listo para pasar a impresión.';
+          case 'Listo para Encuadernar':
+            return 'Tu pedido ya está impreso y listo para encuadernar.';
+          case 'Listo para Entregar':
+            return '¡Tu pedido está listo para entregar! 🎉';
+          default:
+            return `Tu pedido cambió de estado a: ${status}.`;
+        }
+      }
+
+      function buildWhatsappMessage(order) {
+        const name = firstName(order.customerName);
+        const url = trackingUrl(order.orderId);
+        return `Hola ${name} 👋\n\n${statusSentence(order.status)}\n\n*Pedido:* ${order.orderId}\n*Estado actual:* ${order.status}\n\nPodés ver el seguimiento y el detalle actualizado acá:\n${url}\n\nGracias por elegir Docentes Brown 💙`;
+      }
+
+      function waLink(phone, message) {
+        const normalized = normalizeWhatsAppPhone(phone);
+        if (!normalized) return '';
+        return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`;
+      }
+
+      async function copyText(value, button) {
+        try {
+          await navigator.clipboard.writeText(value);
+          if (button) {
+            const old = button.textContent;
+            button.textContent = 'Copiado ✓';
+            setTimeout(() => button.textContent = old, 1300);
+          }
+        } catch {
+          const area = document.createElement('textarea');
+          area.value = value;
+          area.style.position = 'fixed';
+          area.style.opacity = '0';
+          document.body.appendChild(area);
+          area.select();
+          document.execCommand('copy');
+          area.remove();
+        }
+      }
+
+      function showNotice(el, text, kind = '') {
+        el.textContent = text;
+        el.className = `notice${kind ? ' ' + kind : ''}`;
+        el.classList.remove('hidden');
+      }
+
+      function hideNotice(el) {
+        el.classList.add('hidden');
+      }
+
+      function setButtonLoading(button, loading, textWhenLoading = 'Cargando…') {
+        if (!button) return;
+        if (loading) {
+          button.dataset.originalText = button.innerHTML;
+          button.disabled = true;
+          button.innerHTML = `<span class="spin"></span>${textWhenLoading}`;
+        } else {
+          button.disabled = false;
+          if (button.dataset.originalText) button.innerHTML = button.dataset.originalText;
+        }
+      }
+
+      // -----------------------------
+      // View routing
+      // -----------------------------
+      function applyMode() {
+        $('publicView').classList.toggle('hidden', isAdmin);
+        $('adminView').classList.toggle('hidden', !isAdmin);
+        $('modeLink').href = isAdmin ? '/' : '/?admin=1';
+        $('modeLink').innerHTML = isAdmin
+          ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="label">Volver al seguimiento</span>`
+          : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="label">Administración</span>`;
+      }
+
+      // -----------------------------
+      // Public tracking
+      // -----------------------------
+      function renderProgress(status) {
+        const idx = Math.max(0, STATUSES.indexOf(status));
+        $('progressTrack').innerHTML = STATUSES.map((_, i) => `<span class="progress-segment ${i <= idx ? 'on' : ''}"></span>`).join('');
+        $('progressLabels').innerHTML = STATUS_LABELS.map((label, i) => `<span class="${i <= idx ? 'on' : ''}">${label}</span>`).join('');
+      }
+
+      function renderPublicOrder(order) {
+        currentPublicOrder = order;
+        $('statusTitle').textContent = order.status || STATUSES[0];
+        $('statusId').textContent = order.orderId;
+        renderProgress(order.status);
+        $('statusCard').classList.remove('hidden');
+
+        const details = [
+          ['Nombre', order.customerName],
+          ['Fecha del pedido', dateTime(order.placedAt)],
+          ['Método de entrega', order.deliveryMethod],
+          ['Cantidad de calificadores', order.quantity || '—'],
+          ['Opción de cursos', order.courseOption],
+          ['Tapa elegida', order.cover],
+          ['Agregados', order.addons],
+          ['Remera', order.shirt],
+          ['Librería', order.stationery],
+          ['Forma de pago', order.paymentMethod]
+        ].filter(([, value]) => value !== '' && value !== null && value !== undefined && value !== 0);
+
+        $('detailsGrid').innerHTML = details.map(([label, value]) => `
+          <article class="detail-item">
+            <div class="detail-label">${escapeHtml(label)}</div>
+            <div class="detail-value">${escapeHtml(value)}</div>
+          </article>
+        `).join('');
+
+        $('moneyGrid').innerHTML = `
+          <article class="money-card total">
+            <div class="money-label">Total</div>
+            <div class="money-value">${escapeHtml(money(order.finalTotal))}</div>
+          </article>
+          <article class="money-card">
+            <div class="money-label">Pago registrado</div>
+            <div class="money-value">${escapeHtml(money(order.paidNow))}</div>
+          </article>
+          <article class="money-card">
+            <div class="money-label">Saldo al entregar</div>
+            <div class="money-value">${escapeHtml(money(order.balance))}</div>
+          </article>
+        `;
+
+        $('detailSection').classList.remove('hidden');
+      }
+
+      async function lookupOrder(orderId, pushUrl = true) {
+        const id = normalizeOrderId(orderId);
+        hideNotice($('publicMessage'));
+
+        if (!isValidOrderId(id)) {
+          showNotice($('publicMessage'), 'Revisá el ID. Tiene que tener el formato DB-AAAAMMDDHHMMSS-XXXXX.', 'error');
+          return;
+        }
+
+        $('orderId').value = id;
+        setButtonLoading($('lookupButton'), true, 'Buscando…');
+
+        try {
+          const response = await fetch(`/api/order?id=${encodeURIComponent(id)}`, { cache: 'no-store' });
+          const payload = await response.json();
+          if (!response.ok || !payload.ok) throw new Error(payload.error || 'No pudimos consultar el pedido.');
+
+          renderPublicOrder(payload.data);
+          if (pushUrl) history.replaceState({}, '', `/?id=${encodeURIComponent(id)}`);
+        } catch (error) {
+          $('statusCard').classList.add('hidden');
+          $('detailSection').classList.add('hidden');
+          showNotice($('publicMessage'), error.message || 'No pudimos consultar el pedido.', 'error');
+        } finally {
+          setButtonLoading($('lookupButton'), false);
+        }
+      }
+
+      $('lookupForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        lookupOrder($('orderId').value);
+      });
+
+      $('copyIdButton').addEventListener('click', () => {
+        if (currentPublicOrder?.orderId) copyText(currentPublicOrder.orderId, $('copyIdButton'));
+      });
+
+      // -----------------------------
+      // Admin
+      // -----------------------------
+      function authHeaders(extra = {}) {
+        return { ...extra, Authorization: `Bearer ${adminPassword}` };
+      }
+
+      function renderStats() {
+        const total = adminOrders.length;
+        const counts = Object.fromEntries(STATUSES.map(s => [s, 0]));
+        adminOrders.forEach(o => { if (counts[o.status] !== undefined) counts[o.status]++; });
+
+        $('stats').innerHTML = `
+          <div class="stat"><div class="stat-number">${total}</div><div class="stat-label">Pedidos cargados</div></div>
+          <div class="stat"><div class="stat-number">${counts['Pendiente de pago']}</div><div class="stat-label">Pendientes</div></div>
+          <div class="stat"><div class="stat-number">${counts['Listo para Imprimir']}</div><div class="stat-label">Para imprimir</div></div>
+          <div class="stat"><div class="stat-number">${counts['Listo para Entregar']}</div><div class="stat-label">Para entregar</div></div>
+        `;
+      }
+
+      function statusPill(status) {
+        return `<span class="status-pill"><span class="status-dot"></span>${escapeHtml(status || STATUSES[0])}</span>`;
+      }
+
+      function renderOrders() {
+        const term = $('searchInput').value.trim().toLowerCase();
+        const filtered = adminOrders.filter(order => {
+          const haystack = [order.customerName, order.orderId, order.phone, order.status].join(' ').toLowerCase();
+          return !term || haystack.includes(term);
+        });
+
+        $('orders').innerHTML = filtered.map(order => `
+          <article class="order-card" data-id="${escapeHtml(order.orderId)}">
+            <div class="order-customer">
+              <div class="customer-name">${escapeHtml(order.customerName || 'Sin nombre')}</div>
+              <div class="customer-meta">${escapeHtml(order.phone || 'Sin celular')} · ${escapeHtml(dateTime(order.placedAt))}</div>
+              <div class="order-code">${escapeHtml(order.orderId)}</div>
+            </div>
+
+            <div>
+              ${statusPill(order.status)}
+              <div class="customer-meta" style="margin-top:7px">${escapeHtml(order.deliveryMethod || '')}</div>
+            </div>
+
+            <div>
+              <select aria-label="Estado del pedido">
+                ${STATUSES.map(status => `<option value="${escapeHtml(status)}" ${status === order.status ? 'selected' : ''}>${escapeHtml(status)}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="order-actions">
+              <button class="btn btn-soft btn-sm" type="button" data-action="message">WhatsApp</button>
+              <button class="btn btn-primary btn-sm" type="button" data-action="save">Guardar</button>
+            </div>
+          </article>
+        `).join('') || `<div class="empty">No encontramos pedidos con esa búsqueda.</div>`;
+      }
+
+      async function loadOrders() {
+        hideNotice($('adminMessage'));
+        $('orders').innerHTML = `<div class="empty">Cargando pedidos…</div>`;
+        const response = await fetch('/api/orders', { headers: authHeaders(), cache: 'no-store' });
+        const payload = await response.json();
+        if (!response.ok || !payload.ok) throw new Error(payload.error || 'No se pudieron cargar los pedidos.');
+        adminOrders = Array.isArray(payload.data) ? payload.data : [];
+        renderStats();
+        renderOrders();
+      }
+
+      function showWhatsappComposer(order) {
+        whatsappContext = order;
+        const phone = normalizeWhatsAppPhone(order.phone);
+        const url = trackingUrl(order.orderId);
+        $('waRecipient').textContent = `${order.customerName || 'Comprador/a'} · ${order.phone || 'sin celular cargado'}`;
+        $('waPhone').value = phone;
+        $('waTrackingUrl').value = url;
+        $('waMessage').value = buildWhatsappMessage(order);
+        $('waBackdrop').classList.add('open');
+        $('waSheet').classList.add('open');
+        $('waBackdrop').setAttribute('aria-hidden', 'false');
+      }
+
+      function closeWhatsappComposer() {
+        $('waBackdrop').classList.remove('open');
+        $('waSheet').classList.remove('open');
+        $('waBackdrop').setAttribute('aria-hidden', 'true');
+      }
+
+      function openWhatsapp() {
+        const phone = normalizeWhatsAppPhone($('waPhone').value);
+        const message = $('waMessage').value;
+        const link = waLink(phone, message);
+        if (!link) {
+          alert('El pedido no tiene un celular válido. Revisá la columna Celular.');
+          return;
+        }
+
+        // En Android intentamos abrir específicamente WhatsApp Business.
+        // Si no está instalado, Chrome cae al enlace web de WhatsApp.
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid) {
+          const intent = `intent://send?phone=${phone}&text=${encodeURIComponent(message)}#Intent;scheme=whatsapp;package=com.whatsapp.w4b;S.browser_fallback_url=${encodeURIComponent(link)};end`;
+          window.location.href = intent;
+          return;
+        }
+
+        // iPhone/iPad no permiten seleccionar por web el paquete de WhatsApp Business.
+        // wa.me abre la app de WhatsApp disponible/asociada en el dispositivo.
+        window.location.href = link;
+      }
+
+      async function saveStatus(card, button) {
+        const orderId = card.dataset.id;
+        const select = card.querySelector('select');
+        const newStatus = select.value;
+        const current = adminOrders.find(o => o.orderId === orderId);
+        if (!current) return;
+
+        if (current.status === newStatus) {
+          showWhatsappComposer(current);
+          return;
+        }
+
+        setButtonLoading(button, true, 'Guardando…');
+        hideNotice($('adminMessage'));
+
+        try {
+          const response = await fetch('/api/status', {
+            method: 'POST',
+            headers: authHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ orderId, status: newStatus })
+          });
+          const payload = await response.json();
+          if (!response.ok || !payload.ok) throw new Error(payload.error || 'No se pudo actualizar el estado.');
+
+          // Compatible tanto con el puente original como con la v2.
+          const updated = payload.data?.order || payload.data || { ...current, status: newStatus };
+          const merged = { ...current, ...updated, status: newStatus };
+          const index = adminOrders.findIndex(o => o.orderId === orderId);
+          if (index >= 0) adminOrders[index] = merged;
+
+          renderStats();
+          renderOrders();
+          showNotice($('adminMessage'), `Estado actualizado: ${merged.customerName || merged.orderId} → ${newStatus}. El WhatsApp queda listo para que lo envíes vos.`, 'success');
+          showWhatsappComposer(merged);
+
+          if ($('autoWhatsapp').checked && normalizeWhatsAppPhone(merged.phone)) {
+            // Pequeña demora para que el usuario vea que el estado se guardó.
+            setTimeout(openWhatsapp, 320);
+          }
+        } catch (error) {
+          showNotice($('adminMessage'), error.message || 'No se pudo actualizar el estado.', 'error');
+          select.value = current.status;
+        } finally {
+          setButtonLoading(button, false);
+        }
+      }
+
+      $('loginForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        adminPassword = $('password').value.trim();
+        hideNotice($('loginMessage'));
+        const submit = event.submitter;
+        setButtonLoading(submit, true, 'Ingresando…');
+        try {
+          await loadOrders();
+          sessionStorage.setItem('dbAdminPassword', adminPassword);
+          $('loginCard').classList.add('hidden');
+          $('adminApp').classList.remove('hidden');
+        } catch (error) {
+          showNotice($('loginMessage'), error.message || 'No pudimos iniciar sesión.', 'error');
+        } finally {
+          setButtonLoading(submit, false);
+        }
+      });
+
+      $('searchInput').addEventListener('input', renderOrders);
+
+      $('orders').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const card = button.closest('.order-card');
+        if (!card) return;
+        const order = adminOrders.find(o => o.orderId === card.dataset.id);
+        if (!order) return;
+
+        if (button.dataset.action === 'message') {
+          const selectedStatus = card.querySelector('select').value;
+          showWhatsappComposer({ ...order, status: selectedStatus });
+        }
+
+        if (button.dataset.action === 'save') {
+          saveStatus(card, button);
+        }
+      });
+
+      $('logoutButton').addEventListener('click', () => {
+        sessionStorage.removeItem('dbAdminPassword');
+        adminPassword = '';
+        location.href = '/?admin=1';
+      });
+
+      $('closeWaButton').addEventListener('click', closeWhatsappComposer);
+      $('waBackdrop').addEventListener('click', closeWhatsappComposer);
+      $('openWhatsappButton').addEventListener('click', openWhatsapp);
+      $('copyMessageButton').addEventListener('click', () => copyText($('waMessage').value, $('copyMessageButton')));
+      $('copyLinkButton').addEventListener('click', () => copyText($('waTrackingUrl').value, $('copyLinkButton')));
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeWhatsappComposer();
+      });
+
+      // -----------------------------
+      // Boot
+      // -----------------------------
+      applyMode();
+
+      if (isAdmin) {
+        if (adminPassword) {
+          loadOrders()
+            .then(() => {
+              $('loginCard').classList.add('hidden');
+              $('adminApp').classList.remove('hidden');
+            })
+            .catch(() => {
+              sessionStorage.removeItem('dbAdminPassword');
+              adminPassword = '';
+              $('loginCard').classList.remove('hidden');
+              $('adminApp').classList.add('hidden');
+            });
+        }
+      } else {
+        const initialId = qs.get('id');
+        if (initialId) lookupOrder(initialId, false);
+      }
+    })();
+  </script>
+</body>
+</html>
