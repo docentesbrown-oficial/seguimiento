@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#24496e" />
   <meta name="description" content="Seguimiento de pedidos de Docentes Brown" />
   <title>Seguimiento de pedidos | Docentes Brown</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -464,7 +465,7 @@
           <span class="brand-sub">Consultora Educativa · Seguimiento de pedidos</span>
         </span>
       </a>
-      <a id="modeLink" class="mode-link" href="/?admin=1">
+      <a id="modeLink" class="mode-link" href="/admin">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <span class="label">Administración</span>
       </a>
@@ -610,7 +611,7 @@
       const STATUS_LABELS = ['Pago', 'Impresión', 'Encuadernación', 'Entrega'];
       const $ = (id) => document.getElementById(id);
       const qs = new URLSearchParams(location.search);
-      const isAdmin = qs.get('admin') === '1';
+      const isAdmin = location.pathname.replace(/\/$/, '') === '/admin' || qs.get('admin') === '1';
 
       let currentPublicOrder = null;
       let adminOrders = [];
@@ -673,7 +674,7 @@
       }
 
       function trackingUrl(orderId) {
-        return `${location.origin}/?id=${encodeURIComponent(orderId)}`;
+        return `${location.origin}/pedido?id=${encodeURIComponent(orderId)}`;
       }
 
       function statusSentence(status) {
@@ -751,7 +752,7 @@
       function applyMode() {
         $('publicView').classList.toggle('hidden', isAdmin);
         $('adminView').classList.toggle('hidden', !isAdmin);
-        $('modeLink').href = isAdmin ? '/' : '/?admin=1';
+        $('modeLink').href = isAdmin ? '/' : '/admin';
         $('modeLink').innerHTML = isAdmin
           ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="label">Volver al seguimiento</span>`
           : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="label">Administración</span>`;
@@ -829,7 +830,7 @@
           if (!response.ok || !payload.ok) throw new Error(payload.error || 'No pudimos consultar el pedido.');
 
           renderPublicOrder(payload.data);
-          if (pushUrl) history.replaceState({}, '', `/?id=${encodeURIComponent(id)}`);
+          if (pushUrl) history.replaceState({}, '', `/pedido?id=${encodeURIComponent(id)}`);
         } catch (error) {
           $('statusCard').classList.add('hidden');
           $('detailSection').classList.add('hidden');
@@ -1047,7 +1048,7 @@
       $('logoutButton').addEventListener('click', () => {
         sessionStorage.removeItem('dbAdminPassword');
         adminPassword = '';
-        location.href = '/?admin=1';
+        location.href = '/admin';
       });
 
       $('closeWaButton').addEventListener('click', closeWhatsappComposer);

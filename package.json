@@ -1,0 +1,9 @@
+{
+  "name": "seguimiento-docentes-brown",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Aplicación independiente de seguimiento de pedidos de Docentes Brown",
+  "engines": {
+    "node": ">=18"
+  }
+}
